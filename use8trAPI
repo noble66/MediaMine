@@ -1,0 +1,37 @@
+# Bunch of functions that retrieve data from 8tracks API
+# Needs developer API key
+import sys
+import os
+
+key="21c1717edee2e112d8ce58e6d5e9eb4754954951"
+
+# browse all tags
+def top_tags():
+    cmd="curl -o toptags.xml --header \"X-Api-Key: "+key+"\""
+    cmd = cmd+" http://8tracks.com/tags.xml "
+    os.system(cmd)
+
+# for a particular emotion tag, find all mixes
+def get_tagMixes(tag):
+    fname="tagMixes/"+tag+"_Mixes.xml"
+    cmd="curl -o "+fname+" --header \"X-Api-Key: "+key+"\""
+    cmd = cmd+" http://8tracks.com/mixes.xml?tag="+tag
+    os.system(cmd)
+
+
+def get_tracks(mixId):
+    fname=""
+    cmd="curl "+fname+" --header \"X-Api-Key: "+key+"\""
+    cmd = cmd+" http://8tracks.com/mixes/"+str(mixId)+".xml"
+    cmd = cmd+" http://8tracks.com/sets/play.xml?mix_id="+str(mixId)
+    os.system(cmd)
+
+# given an xml of toptags, extracts the tags and returns as list
+# uses result of top_tags ()
+def extract_tags_from_xml(filename):
+        tags=[]
+        with open(filename,'r') as f:
+            for line in f:
+                if '<name>' in line:
+                    tags.append(line.split('</name>')[0].replace(' ','').replace('<name>',''))
+        return tags
