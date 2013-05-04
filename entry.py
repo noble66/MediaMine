@@ -1,5 +1,5 @@
 # one off code
-
+# populates the emotion database
 import sqlite3 as lite
 import sys
 import pickle
