@@ -1,0 +1,39 @@
+#use the Twitter API
+
+import urllib2
+import simplejson
+
+def get_tweets_by_username(username, days):
+  reqst = "https://api.twitter.com/1/statuses/user_timeline.json?include_entities=true&include_rts=true&screen_name="+username+"&count="+str(days)
+	req=urllib2.Request(reqst)
+	opener=urllib2.build_opener()
+	f=opener.open(req)
+	x=simplejson.load(f)
+	uid=x[0]['user']['id']
+	twts=[]
+	for i in x:
+		twts.append(i['text'])
+	return uid, twts
+		
+
+def get_followers(username):
+	reqst = "https://api.twitter.com/1/followers/ids.json?cursor=-1&screen_name="+username
+  	req=urllib2.Request(reqst)
+        opener=urllib2.build_opener()
+        f=opener.open(req)
+        x=simplejson.load(f)
+	return x['ids']
+
+def get_tweets_by_id(userid, days):
+	reqst = "https://api.twitter.com/1/statuses/user_timeline.json?include_entities=true&include_rts=true&user_id="+str(userid)+"&count="+str(days)
+        req=urllib2.Request(reqst)
+        opener=urllib2.build_opener()
+        f=opener.open(req)
+        x=simplejson.load(f)
+	twts=[]
+	uname=''
+	if len(x)>1:
+		uname=x[0]['user']['screen_name']
+		for i in x:
+		        twts.append(i['text'])
+        return uname, twts
