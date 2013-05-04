@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+import urllib2
+import re
+import pickle
+
+import networkx as nx
+
+def get_movie_features(moviename):
+        movie= moviename.lower()
+        reqtype = '-'.join(movie.split(' '))
+        #build request , api anonymized on request 
+        #reqst = "http://www.whateveryourapiis.com/movies/"+reqtype+"/"
+  try:
+            response = urllib2.urlopen(reqst)
+            html = response.read()
+        except:
+            print 'Cannot find: ', moviename
+            return []
+        k = re.findall(r'gene=+[a-zA-Z0-9_]+\"',html)
+        genelist = [x.replace('gene=','').strip('\"') for x in k]
+        return genelist
+            
+
+#one time
+def run_imdb_250():
+    f=open('./imdb250.list','r')
+    moviesTuple=pickle.load(f)
+    output = {}
+    with open('movieGenes.dict','r') as fw:
+        print 'Loading existing gene library'
+        inList = pickle.load(fw)
+    for x in moviesTuple:
+        if x in inList.keys():
+            continue
+        movie_name = x[2][:-7].strip(',?-\'')
+        print 'Querying movie: ',movie_name
+        if ':' in movie_name:
+            sp = movie_name.split(':')
+            if 'Part' in sp[1].split(' '):
+                movie_name = movie_name.split(':')[0]
+            else:
+                movie_name = movie_name.split(':')[1]
+        glist = get_movie_features(movie_name)
+        if len(glist)<1:
+            print x
+        else:
+            output[movie_name]=glist
+    return output
+        
+# pass movieGenes.dict
+def make_network(p):
+    G = nx.Graph(p)
+    for movie in p.keys():
+        print 'Processing ', movie
+        genes = p[movie]
+        for i in range(0,len(genes)):
+            if genes[i] not in G.nodes():
+                G.add_node(genes[i], type='gene')
+            for j in range(i+1, len(genes)):
+                if genes[j] not in G.nodes():
+                    G.add_node(genes[j], type='gene')
+                if (genes[i],genes[j]) in G.edges() or (genes[j],genes[i]) in G.edges():
+                    G[genes[i]][genes[j]]['weight']+=1
+                else:
+                    G.add_edge(genes[i],genes[j])
+                    G[genes[i]][genes[j]]['weight']=1
+    return G
